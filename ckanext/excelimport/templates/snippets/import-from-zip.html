@@ -1,0 +1,15 @@
+{% extends "user/dashboard.html" %}
+
+{% import 'macros/form.html' as form %}
+
+{% block dashboard_activity_stream_context %}{% endblock %}
+
+{% block primary_content_inner %}
+  <h2 class="hide-heading">{{ _('Import from ZIP') }}</h2>
+  <div class="seeding-form-wrapper">
+  	<form action="" method="post" class="form-horizontal col-md-6" id="seeding-form" enctype="multipart/form-data">
+    	{{ form.input('dataset_zip', label=_('Upload ZIP file'), type="file", value="") }}
+    	<input name="submit" id="upload-zip-btn" type="submit" class="btn btn-primary pull-right" value="Import ZIP"/>
+    </form>
+  </div>
+{% endblock %}

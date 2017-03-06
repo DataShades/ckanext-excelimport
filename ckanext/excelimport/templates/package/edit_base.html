@@ -1,0 +1,13 @@
+{% ckan_extends %}
+
+{# {% block breadcrumb_content %}
+  {{ super() }}
+  {% if pkg %}
+    <li class="active">{% link_for _('Update From ZIP'), controller='ckanext.excelimport.controller.excelimport:ExcelUpdateController', action='update_from_zip', id=pkg.name %}</li>
+  {% endif %}
+{% endblock %} #}
+
+{% block content_primary_nav %}
+  {{ super() }}
+  {{ h.build_nav_icon('dataset_update_zip', _('Update from ZIP'), id=pkg.name) }}
+{% endblock %}
