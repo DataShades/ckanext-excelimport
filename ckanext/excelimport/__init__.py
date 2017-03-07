@@ -1,31 +1,28 @@
-AVAILABLE_MD_FILES = ['spatial-dataset.xlsx', 'dataset.xlsx']
+AVAILABLE_MD_FILES = ['dataset.xlsx']
 METADATA_SHEET = {
-    'dataset.xlsx': 'Non-Spatial Metadata',
-    'spatial-dataset.xlsx': 'Spatial Metadata'
+    'dataset.xlsx': 'Dataset Metadata',
 }
 
 FIELD_MAPPING = {
     'CKAN Package ID': 'id',
     'Title': 'title',
     'File Identifier': 'file_identifier',
-    'Abstract': 'notes',
-    'Purpose': 'purpose',
-    'Contact': 'custodian',
-    'Jurisdictions': 'jurisdictions',
-    'Geographic Bounding Box': 'geographic_bounding_box',
-    'Geographic Area': 'geographic_area',
-    'Lineage': 'lineage',
+    'Description': 'notes',
+    'Tags': 'tag_string',
+    'Custodian': 'custodian',
+    'Author Email': 'author_email',
+    'License': 'license',
+    'Organisation ID': 'owner_org',
+    'Visibility': 'private',
+    'Landing Page': 'url',
     'Extent': 'spatial',
-    'Distribution Format': 'distribution_format',
-    'Keyword': 'tag_string',
-    'Maintenance And Update Frequency': 'update_frequency',
-    'Use Limitation': 'use_limitation',
-    'Legal Constraints': 'legal_constraints',
-    'Resolution': 'resolution',
-    'DQ Completeness': 'dq_completeness',
-    'Reference System': 'reference_system',
-    'Topic Category': 'topic',
-    'Date Created': 'created_bug',
-    'Date Published': 'not_used',
-    'Date Last Revised': 'last_modified_fix',
+    'Temporal Coverage': 'temporal_extent',
+    'Frequency of change': 'update_frequency',
+    'Type': 'type',
+    'Topic and category': 'topic',
+    'Date Created': 'created',
+    'Last updated': 'last_modified',
+    'Map Service ID': 'map_service_id',
+    'Layer ID': 'layer_id',
+    'Map Type': 'map_type'
 }

@@ -6,12 +6,10 @@ import ckan.model as model
 from ckan.logic import (ValidationError, NotAuthorized,
                         NotFound, check_access)
 import ckan.plugins.toolkit as tk
-from pylons import config
 
 import zipfile
 from openpyxl import load_workbook
 import io
-from pprint import pprint
 
 from ckanext.excelimport import (
     AVAILABLE_MD_FILES,
@@ -38,8 +36,6 @@ class ExcelUpdateController(base.BaseController):
         try:
             check_access('package_update', context, {'id': id})
             c.pkg_dict = tk.get_action('package_show')(context, {'id': id})
-            # del c.pkg_dict['resources']
-            # tk.get_action('package_update')(context, c.pkg_dict)
         except NotAuthorized:
             abort(401, _('Unauthorized to read package %s') % '')
         except NotFound:
@@ -82,12 +78,7 @@ class ExcelUpdateController(base.BaseController):
                         resources_sheet = metadata_xlsx.get_sheet_by_name(
                             'Resources'
                         )
-                        data_dict = {
-                            'owner_org': config.get(
-                                'excelimport.fixed_organization',
-                                ''
-                            )
-                        }
+                        data_dict = {}
                         rows = metadata_sheet.iter_rows(row_offset=1)
                         try:
                             get_helpers.get('prepare_data_dict')(data_dict, rows)
@@ -149,10 +140,10 @@ class ExcelUpdateController(base.BaseController):
         list_files = archive.namelist()
 
         for row in rows:
-            resource_from = row[1].internal_value
-            # resource_format = row[2].internal_value
-            resource_title = row[3].internal_value
-            resource_desc = row[5].internal_value
+            resource_from = row[1].value
+            resource_format = row[2].value
+            resource_title = row[3].value
+            resource_desc = row[5].value
             if resource_from:
                 if not resource_from.startswith('http'):
                     if resource_from in list_files:
@@ -178,6 +169,7 @@ class ExcelUpdateController(base.BaseController):
                     tk.get_action('resource_create')(context, {
                         'package_id': data_dict['id'],
                         'url': resource_from,
-                        'nae': resource_title,
+                        'name': resource_title,
+                        'format': resource_format,
                         'description': resource_desc,
                     })
