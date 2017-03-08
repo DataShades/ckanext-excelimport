@@ -1,0 +1,2 @@
+include README.rst
+recursive-include ckanext/seeding *.html *.json *.js *.less *.css *.mo
