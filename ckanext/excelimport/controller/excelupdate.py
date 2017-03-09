@@ -159,6 +159,7 @@ class ExcelUpdateController(base.BaseController):
                             'package_id': data_dict['id'],
                             # url must be provided, even for uploads
                             'url': resource_from,
+                            'format': resource_format,
                             'name': resource_title,
                             'description': resource_desc,
                             'url_type': 'upload',
