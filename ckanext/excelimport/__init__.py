@@ -26,3 +26,9 @@ FIELD_MAPPING = {
     'Layer ID': 'layer_id',
     'Map Type': 'map_type'
 }
+
+MAP_TYPES = {
+    'Map Service and Layer': 'MapServiceLayer',
+    'WMS Layer': 'Layer',
+    'Map Service': 'MapService'
+}
