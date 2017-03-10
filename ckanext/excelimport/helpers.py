@@ -2,10 +2,7 @@ from ckan.logic import ValidationError
 
 import cgi
 
-import ckanext.scheming.helpers as schema_helpers
-from ckanext.excelimport import FIELD_MAPPING
-
-schema = schema_helpers.scheming_get_schema('dataset', 'dataset')
+from ckanext.excelimport import FIELD_MAPPING, MAP_TYPES
 
 
 def validate_file_ext(zip_file):
@@ -30,17 +27,8 @@ def prepare_data_dict(data_dict, rows):
                     else:
                         value = False
                 if FIELD_MAPPING[field] == 'map_type' and value:
-                    mt_field = schema_helpers.scheming_field_by_name(
-                        schema.get('dataset_fields', {}),
-                        FIELD_MAPPING[field]
-                    )
-                    choices = schema_helpers.scheming_field_choices(
-                        mt_field
-                    )
-
-                    for choice in choices:
-                        if choice.get('label') == value:
-                            value = choice.get('value', None)
+                    if value in MAP_TYPES:
+                        value = MAP_TYPES[value]
 
                 data_dict[FIELD_MAPPING[field]] = value
         except KeyError, e:
