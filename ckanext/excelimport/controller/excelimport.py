@@ -2,9 +2,12 @@
 import ckan.lib.base as base
 import ckan.lib.helpers as h
 from ckan.lib.munge import munge_title_to_name
-from ckan.common import request, c
+from ckan.common import request, c, _
 import ckan.model as model
-from ckan.logic import ValidationError
+from ckan.logic import (ValidationError, NotAuthorized,
+                        NotFound, check_access)
+from ckan.logic.validators import package_id_or_name_exists
+import ckan.lib.navl.dictization_functions as df
 import ckan.plugins.toolkit as tk
 
 import zipfile
@@ -18,6 +21,7 @@ from ckanext.excelimport import (
 from ckanext.excelimport.helpers import get_helpers
 
 abort = base.abort
+Invalid = df.Invalid
 
 
 class ExcelImportController(base.BaseController):
@@ -28,12 +32,29 @@ class ExcelImportController(base.BaseController):
         data_dict['name'] = munge_title_to_name(
             data_dict['title']
         )
+        try:
+            package_id_or_name_exists(data_dict['name'], context)
+        except Invalid:
+            pass
+        else:
+            counter = 0
+
+            while True:
+                name = '{0}-{1}'.format(data_dict['name'], counter)
+                try:
+                    package_id_or_name_exists(name, context)
+                except Invalid:
+                    data_dict['name'] = name
+                    break
+                counter += 1
+
         result = self.create_dataset(
             context,
             data_dict,
             resources_sheet,
             archive
         )
+
         if result:
             h.flash_success('Dataset was created!')
 
@@ -46,6 +67,13 @@ class ExcelImportController(base.BaseController):
             'for_view': True,
             'auth_user_obj': c.userobj
         }
+
+        try:
+            check_access('package_create', context)
+        except NotAuthorized:
+            abort(401, _('Unauthorized to create package'))
+        except NotFound:
+            abort(404, _('Dataset not found'))
 
         if request.method == 'POST':
 
@@ -99,7 +127,7 @@ class ExcelImportController(base.BaseController):
                             )
                         else:
                             pkg = tk.get_action('package_show')(
-                                context,
+                                None,
                                 {'id': data_dict['id']}
                             )
                             if pkg:
