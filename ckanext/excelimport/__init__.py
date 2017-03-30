@@ -113,5 +113,8 @@ XML_MAP = {
     'last_modified': (
         'gmd:identificationInfo/gmd:MD_DataIdentification/'
         'gmd:citation/gmd:CI_Citation/gmd:date[3]/'
-        'gmd:CI_Date/gmd:date/gco:Date')
+        'gmd:CI_Date/gmd:date/gco:Date'),
+    'map_service_id': '',
+    'layer_id': '',
+    'map_type': ''
 }
