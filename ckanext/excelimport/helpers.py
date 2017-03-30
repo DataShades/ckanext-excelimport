@@ -1,8 +1,9 @@
 from ckan.logic import ValidationError
+from dateutil.parser import parse
 
 import shapely.geometry as geo
 import cgi
-from dateutil.parser import parse
+import json
 
 from ckanext.excelimport import (
     FIELD_MAPPING, MAP_TYPES, NAMESPACES
@@ -66,6 +67,7 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
                     float(spatial.find(value['x_coords']['east'], NAMESPACES).text),
                     float(spatial.find(value['x_coords']['north'], NAMESPACES).text),
                 ))
+                data_dict[key] = json.dumps(data_dict[key])
             except AttributeError:
                 data_dict[key] = None
         elif key == 'temporal_extent':
