@@ -4,5 +4,6 @@
   {{ super() }}
   {% if h.check_access('package_create') %}
     {% link_for _('Import from ZIP'), controller='ckanext.excelimport.controller.excelimport:ExcelImportController', action='import_from_zip', class_="btn btn-primary", icon="plus-sign-alt" %}
+    {% link_for _('Import from ISO19115 XML'), controller='ckanext.excelimport.controller.xmlimport:XMLImportController', action='import_from_xml', class_="btn btn-primary", icon="plus-sign-alt" %}
   {% endif %}
 {% endblock %}
