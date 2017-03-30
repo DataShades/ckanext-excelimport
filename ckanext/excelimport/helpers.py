@@ -92,6 +92,8 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
                 data_dict[key] = 'Unknown'
         elif key == 'type':
             data_dict[key] = 'dataset'
+        elif key == 'map_type':
+            data_dict[key] = ''
         else:
             try:
                 data_dict[key] = tree.find(value, NAMESPACES).text
