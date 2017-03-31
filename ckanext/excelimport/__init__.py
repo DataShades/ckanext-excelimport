@@ -118,3 +118,32 @@ XML_MAP = {
     'layer_id': '',
     'map_type': ''
 }
+
+XML_RESOURCE_MAP = {
+    'resource_location': 'gmd:distributionInfo/gmd:MD_Distribution',
+    'resource_item': 'gmd:transferOptions',
+    'resource_data': {
+        'name': (
+            'gmd:MD_DigitalTransferOptions/gmd:onLine/'
+            'gmd:CI_OnlineResource/gmd:name/gco:CharacterString'
+        ),
+        'url': (
+            'gmd:MD_DigitalTransferOptions/gmd:onLine/'
+            'gmd:CI_OnlineResource/gmd:linkage/gmd:URL'
+        ),
+        'description': (
+            'gmd:MD_DigitalTransferOptions/gmd:onLine/'
+            'gmd:CI_OnlineResource/gmd:description/gco:CharacterString'
+        )
+    },
+    'resource_formats': {
+        'formats_path': (
+            'gmd:identificationInfo/gmd:MD_DataIdentification/'
+            'gmd:resourceFormat/gmd:MD_Format'
+        ),
+        'formats_data': {
+            'format': 'gmd:name/gco:CharacterString',
+            'version': 'gmd:version/gco:CharacterString'
+        }
+    }
+}
