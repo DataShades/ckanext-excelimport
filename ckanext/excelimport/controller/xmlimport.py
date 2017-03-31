@@ -9,10 +9,17 @@ from ckan.logic import (ValidationError, NotAuthorized,
 from ckan.logic.validators import package_id_or_name_exists
 import ckan.lib.navl.dictization_functions as df
 import ckan.plugins.toolkit as tk
-import xml.etree.ElementTree as et
 
-from ckanext.excelimport import XML_MAP
+from ckanext.excelimport import (
+    XML_MAP,
+    XML_RESOURCE_MAP,
+    NAMESPACES
+)
 from ckanext.excelimport.helpers import get_helpers
+
+import xml.etree.ElementTree as et
+import re
+
 
 abort = base.abort
 Invalid = df.Invalid
@@ -21,7 +28,7 @@ Invalid = df.Invalid
 class XMLImportController(base.BaseController):
     """Controller that provides seed datasets import from ISO19115 XML files."""
 
-    def run_create(self, context, data_dict):
+    def run_create(self, context, data_dict, tree):
         """Dataset creating proccess."""
         data_dict['name'] = munge_title_to_name(
             data_dict['title']
@@ -45,6 +52,7 @@ class XMLImportController(base.BaseController):
         result = self.create_dataset(
             context,
             data_dict,
+            tree
         )
 
         if result:
@@ -87,14 +95,21 @@ class XMLImportController(base.BaseController):
                 )
 
                 # XML gives us only org title, not name
-                data_dict['owner_org'] = munge_title_to_name(
-                    data_dict['owner_org']
-                )
+                if data_dict['owner_org']:
+                    org_title = re.sub(
+                        r'\([^)]*\)',
+                        '',
+                        data_dict['owner_org']
+                    )
+                    data_dict['owner_org'] = munge_title_to_name(
+                        org_title.strip()
+                    )
 
                 if not data_dict.get('id', False):
                     self.run_create(
                         context,
-                        data_dict
+                        data_dict,
+                        tree
                     )
                 else:
                     pkg = tk.get_action('package_show')(
@@ -102,21 +117,73 @@ class XMLImportController(base.BaseController):
                         {'id': data_dict['id']}
                     )
                     if pkg:
-                        h.flash_error('Dataset with id {0} exists'.format(data_dict['id']))
+                        h.flash_error('Dataset with id {0} exists'.format(
+                            data_dict['id'])
+                        )
                     else:
                         del data_dict['id']
                         self.run_create(
                             context,
-                            data_dict
+                            data_dict,
+                            tree
                         )
 
         return base.render('snippets/import-from-xml.html')
 
-    def create_dataset(self, context, data_dict):
+    def create_dataset(self, context, data_dict, tree):
         """Create dataset with resources (if it has any)."""
         try:
             ds = tk.get_action('package_create')(context, data_dict)
+            resource_path = tree.find(
+                XML_RESOURCE_MAP['resource_location'],
+                NAMESPACES
+            )
+            resource_items = resource_path.findall(
+                XML_RESOURCE_MAP['resource_item'],
+                NAMESPACES
+            )
+            resource_formats = tree.findall(
+                XML_RESOURCE_MAP['resource_formats']['formats_path'],
+                NAMESPACES
+            )
+
+            if resource_items:
+                self.create_resource(
+                    context,
+                    ds,
+                    resource_items,
+                    resource_formats
+                )
 
             return ds
         except ValidationError, e:
             h.flash_error(e.error_dict)
+
+    def create_resource(self, context, data_dict, resources, formats):
+        """Create resource with file source or url source."""
+        for index, resource in enumerate(resources):
+            resource_from = resource.find(
+                XML_RESOURCE_MAP['resource_data']['url'],
+                NAMESPACES
+            ).text
+            resource_title = resource.find(
+                XML_RESOURCE_MAP['resource_data']['name'],
+                NAMESPACES
+            ).text
+            resource_desc = resource.find(
+                XML_RESOURCE_MAP['resource_data']['description'],
+                NAMESPACES
+            ).text
+            resource_format = formats[index].find(
+                XML_RESOURCE_MAP['resource_formats']['formats_data']['format'],
+                NAMESPACES
+            ).text
+
+            if resource_from:
+                tk.get_action('resource_create')(context, {
+                    'package_id': data_dict['id'],
+                    'url': resource_from,
+                    'name': resource_title,
+                    'description': resource_desc,
+                    'format': resource_format
+                })
