@@ -41,6 +41,7 @@ NAMESPACES = {
 }
 
 XML_MAP = {
+    'id': 'gmd:fileIdentifier/gco:CharacterString',
     'title': (
         'gmd:identificationInfo/gmd:MD_DataIdentification/'
         'gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString'),

@@ -126,13 +126,15 @@ class ExcelImportController(base.BaseController):
                                 archive
                             )
                         else:
-                            pkg = tk.get_action('package_show')(
-                                None,
-                                {'id': data_dict['id']}
-                            )
-                            if pkg:
-                                h.flash_error('Dataset with id {0} exists'.format(data_dict['id']))
-                            else:
+                            try:
+                                package_id_or_name_exists(
+                                    data_dict['id'],
+                                    context
+                                )
+                                h.flash_error('Dataset with id {0} exists'.format(
+                                    data_dict['id'])
+                                )
+                            except Invalid:
                                 del data_dict['id']
                                 self.run_create(
                                     context,
@@ -143,9 +145,8 @@ class ExcelImportController(base.BaseController):
 
                 else:
                     h.flash_error(
-                        'ZIP must contain 1 of 2 files: {0} or {1}'.format(
-                            AVAILABLE_MD_FILES[0],
-                            AVAILABLE_MD_FILES[1]
+                        'ZIP must contain the next .xlsx file: {0}'.format(
+                            AVAILABLE_MD_FILES[0]
                         )
                     )
 

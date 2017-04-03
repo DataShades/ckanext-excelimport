@@ -113,9 +113,8 @@ class ExcelUpdateController(base.BaseController):
 
                 else:
                     h.flash_error(
-                        'ZIP must contain 1 of 2 files: {0} or {1}'.format(
-                            AVAILABLE_MD_FILES[0],
-                            AVAILABLE_MD_FILES[1]
+                        'ZIP must contain the next .xlsx file: {0}'.format(
+                            AVAILABLE_MD_FILES[0]
                         )
                     )
 

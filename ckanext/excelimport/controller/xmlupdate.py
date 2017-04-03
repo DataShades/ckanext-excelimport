@@ -6,7 +6,6 @@ from ckan.common import request, c, _
 import ckan.model as model
 from ckan.logic import (ValidationError, NotAuthorized,
                         NotFound, check_access)
-from ckan.logic.validators import package_id_or_name_exists
 import ckan.lib.navl.dictization_functions as df
 import ckan.plugins.toolkit as tk
 
@@ -25,40 +24,10 @@ abort = base.abort
 Invalid = df.Invalid
 
 
-class XMLImportController(base.BaseController):
+class XMLUpdateController(base.BaseController):
     """Controller that provides seed datasets import from ISO19115 XML files."""
 
-    def run_create(self, context, data_dict, tree):
-        """Dataset creating proccess."""
-        data_dict['name'] = munge_title_to_name(
-            data_dict['title']
-        )
-        try:
-            package_id_or_name_exists(data_dict['name'], context)
-        except Invalid:
-            pass
-        else:
-            counter = 0
-
-            while True:
-                name = '{0}-{1}'.format(data_dict['name'], counter)
-                try:
-                    package_id_or_name_exists(name, context)
-                except Invalid:
-                    data_dict['name'] = name
-                    break
-                counter += 1
-
-        result = self.create_dataset(
-            context,
-            data_dict,
-            tree
-        )
-
-        if result:
-            h.flash_success('Dataset was created!')
-
-    def import_from_xml(self):
+    def update_from_xml(self, id):
         """Method that renders the form and receive submition of the form."""
         context = {
             'model': model,
@@ -69,9 +38,10 @@ class XMLImportController(base.BaseController):
         }
 
         try:
-            check_access('package_create', context)
+            check_access('package_update', context, {'id': id})
+            c.pkg_dict = tk.get_action('package_show')(context, {'id': id})
         except NotAuthorized:
-            abort(401, _('Unauthorized to create package'))
+            abort(401, _('Unauthorized to read package %s') % '')
         except NotFound:
             abort(404, _('Dataset not found'))
 
@@ -106,31 +76,38 @@ class XMLImportController(base.BaseController):
                     )
 
                 if not data_dict.get('id', False):
-                    self.run_create(
+                    h.flash_error('Metadata sheet must contain package id field.')
+                if data_dict['id'] not in [c.pkg_dict['id'], c.pkg_dict['name']]:
+                    error_msg = (
+                        '<p>XML fileIdentifier field is incorrect.</p>'
+                        '<i>XML fileIdentifier id can be dataset\'s name or id.</i>'
+                        '<br/>XML fileIdentifier id: {0}<br/>'
+                        'datatest id: {1}<br/>'
+                        'dataset name: {2}'
+                    ).format(
+                        data_dict['id'],
+                        c.pkg_dict['id'],
+                        c.pkg_dict['name']
+                    )
+                    h.flash_error(error_msg, True)
+                else:
+                    result = self.update_dataset(
                         context,
                         data_dict,
-                        tree
+                        tree,
+                        c.pkg_dict
                     )
-                else:
-                    try:
-                        package_id_or_name_exists(data_dict['id'], context)
-                        h.flash_error('Dataset with id {0} exists'.format(
-                            data_dict['id'])
-                        )
-                    except Invalid:
-                        del data_dict['id']
-                        self.run_create(
-                            context,
-                            data_dict,
-                            tree
-                        )
+                    if result:
+                        h.flash_success('Dataset was updated!')
 
-        return base.render('snippets/import-from-xml.html')
+        return base.render('snippets/update-from-xml.html')
 
-    def create_dataset(self, context, data_dict, tree):
+    def update_dataset(self, context, data_dict, tree, pkg_dict):
         """Create dataset with resources (if it has any)."""
         try:
-            ds = tk.get_action('package_create')(context, data_dict)
+            pkg_dict.update(data_dict)
+            del pkg_dict['resources']
+            ds = tk.get_action('package_update')(context, pkg_dict)
             resource_path = tree.find(
                 XML_RESOURCE_MAP['resource_location'],
                 NAMESPACES

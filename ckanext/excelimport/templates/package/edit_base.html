@@ -2,5 +2,6 @@
 
 {% block content_primary_nav %}
   {{ super() }}
-  {{ h.build_nav_icon('dataset_update_zip', _('Update from ZIP'), id=pkg.name) }}
+  {{ h.build_nav_icon('update_from_zip', _('Update from ZIP'), id=pkg.name) }}
+  {{ h.build_nav_icon('update_from_xml', _('Update from XML'), id=pkg.name) }}
 {% endblock %}
