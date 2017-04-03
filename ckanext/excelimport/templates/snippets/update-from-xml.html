@@ -1,0 +1,15 @@
+{% extends "package/edit_base.html" %}
+
+{% import 'macros/form.html' as form %}
+
+{% block breadcrumb_content_selected %}{% endblock %}
+
+{% block primary_content_inner %}
+  <h2 class="hide-heading">{{ _('Update from XML') }}</h2>
+  <div class="seeding-form-wrapper">
+  	<form action="" method="post" class="form-horizontal col-md-6" id="seeding-form" enctype="multipart/form-data">
+    	{{ form.input('dataset_xml', label=_('Upload XML file'), type="file", value="") }}
+    	<input name="submit" id="upload-xml-btn" type="submit" class="btn btn-primary pull-right" value="Import XML"/>
+    </form>
+  </div>
+{% endblock %}

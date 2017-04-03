@@ -31,7 +31,7 @@ class ExcelImportPlugin(plugins.SingletonPlugin):
             controller="ckanext.excelimport.controller.excelupdate:ExcelUpdateController",
             path_prefix='/dataset'
         ) as m:
-            m.connect('dataset_update_zip', '/update-from-zip/{id}', action='update_from_zip')
+            m.connect('update_from_zip', '/update-from-zip/{id}', action='update_from_zip')
 
         # XML import
         with SubMapper(
@@ -40,5 +40,11 @@ class ExcelImportPlugin(plugins.SingletonPlugin):
             path_prefix='/dashboard'
         ) as m:
             m.connect('import_from_xml', '/import-from-xml', action='import_from_xml')
+        with SubMapper(
+            map,
+            controller="ckanext.excelimport.controller.xmlupdate:XMLUpdateController",
+            path_prefix='/dataset'
+        ) as m:
+            m.connect('update_from_xml', '/update-from-xml/{id}', action='update_from_xml')
 
         return map
