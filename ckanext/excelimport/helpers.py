@@ -53,8 +53,11 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
         if key == 'tag_string':
             tags = []
             tag_list = tree.find(value['x_value'], NAMESPACES)
-            for tag in tag_list.iterfind(value['x_iter'], NAMESPACES):
-                tags.append(tag.text)
+            try:
+                for tag in tag_list.iterfind(value['x_iter'], NAMESPACES):
+                    tags.append(tag.text)
+            except AttributeError:
+                pass
             data_dict[key] = ','.join(tags)
         elif key == 'private':
             data_dict[key] = True
@@ -84,11 +87,16 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
                 )
             except AttributeError:
                 data_dict[key] = None
+        elif key == 'topic':
+            try:
+                data_dict[key] = tree.find(value, NAMESPACES).text.title()
+            except AttributeError:
+                data_dict[key] = None
         elif key == 'update_frequency':
             frequency = tree.find(value, NAMESPACES)
-            if frequency.text:
+            try:
                 data_dict[key] = frequency.text
-            else:
+            except AttributeError:
                 data_dict[key] = 'Unknown'
         elif key == 'type':
             data_dict[key] = 'dataset'

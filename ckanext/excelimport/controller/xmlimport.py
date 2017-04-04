@@ -30,9 +30,12 @@ class XMLImportController(base.BaseController):
 
     def run_create(self, context, data_dict, tree):
         """Dataset creating proccess."""
-        data_dict['name'] = munge_title_to_name(
-            data_dict['title']
-        )
+        try:
+            data_dict['name'] = munge_title_to_name(
+                data_dict['title']
+            )
+        except TypeError:
+            raise ValidationError({'message': 'Invalid XML file was provided'})
         try:
             package_id_or_name_exists(data_dict['name'], context)
         except Invalid:
@@ -106,11 +109,14 @@ class XMLImportController(base.BaseController):
                     )
 
                 if not data_dict.get('id', False):
-                    self.run_create(
-                        context,
-                        data_dict,
-                        tree
-                    )
+                    try:
+                        self.run_create(
+                            context,
+                            data_dict,
+                            tree
+                        )
+                    except ValidationError, e:
+                        h.flash_error(e.error_dict['message'])
                 else:
                     try:
                         package_id_or_name_exists(data_dict['id'], context)
@@ -119,11 +125,14 @@ class XMLImportController(base.BaseController):
                         )
                     except Invalid:
                         del data_dict['id']
-                        self.run_create(
-                            context,
-                            data_dict,
-                            tree
-                        )
+                        try:
+                            self.run_create(
+                                context,
+                                data_dict,
+                                tree
+                            )
+                        except ValidationError, e:
+                            h.flash_error(e.error_dict['message'])
 
         return base.render('snippets/import-from-xml.html')
 
