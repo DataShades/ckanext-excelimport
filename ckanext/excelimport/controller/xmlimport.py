@@ -115,6 +115,8 @@ class XMLImportController(base.BaseController):
                             data_dict,
                             tree
                         )
+                    except NotAuthorized, e:
+                        h.flash_error(e)
                     except ValidationError, e:
                         h.flash_error(e.error_dict['message'])
                 else:
@@ -131,6 +133,8 @@ class XMLImportController(base.BaseController):
                                 data_dict,
                                 tree
                             )
+                        except NotAuthorized, e:
+                            h.flash_error(e)
                         except ValidationError, e:
                             h.flash_error(e.error_dict['message'])
 
