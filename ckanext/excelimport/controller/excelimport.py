@@ -119,12 +119,15 @@ class ExcelImportController(base.BaseController):
                             h.flash_error('Not mapped field: {0}'.format(e))
 
                         if not data_dict.get('id', False):
-                            self.run_create(
-                                context,
-                                data_dict,
-                                resources_sheet,
-                                archive
-                            )
+                            try:
+                                self.run_create(
+                                    context,
+                                    data_dict,
+                                    resources_sheet,
+                                    archive
+                                )
+                            except NotAuthorized, e:
+                                h.flash_error(e)
                         else:
                             try:
                                 package_id_or_name_exists(
@@ -136,12 +139,15 @@ class ExcelImportController(base.BaseController):
                                 )
                             except Invalid:
                                 del data_dict['id']
-                                self.run_create(
-                                    context,
-                                    data_dict,
-                                    resources_sheet,
-                                    archive
-                                )
+                                try:
+                                    self.run_create(
+                                        context,
+                                        data_dict,
+                                        resources_sheet,
+                                        archive
+                                    )
+                                except NotAuthorized, e:
+                                    h.flash_error(e)
 
                 else:
                     h.flash_error(
