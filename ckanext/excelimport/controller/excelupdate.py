@@ -101,16 +101,18 @@ class ExcelUpdateController(base.BaseController):
                             )
                             h.flash_error(error_msg, True)
                         else:
-                            result = self.update_dataset(
-                                context,
-                                resources_sheet,
-                                archive,
-                                data_dict,
-                                c.pkg_dict
-                            )
-                            if result:
-                                h.flash_success('Dataset was updated!')
-
+                            try:
+                                result = self.update_dataset(
+                                    context,
+                                    resources_sheet,
+                                    archive,
+                                    data_dict,
+                                    c.pkg_dict
+                                )
+                                if result:
+                                    h.flash_success('Dataset was updated!')
+                            except NotAuthorized, e:
+                                h.flash_error(e)
                 else:
                     h.flash_error(
                         'ZIP must contain the next .xlsx file: {0}'.format(

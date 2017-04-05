@@ -91,14 +91,17 @@ class XMLUpdateController(base.BaseController):
                     )
                     h.flash_error(error_msg, True)
                 else:
-                    result = self.update_dataset(
-                        context,
-                        data_dict,
-                        tree,
-                        c.pkg_dict
-                    )
-                    if result:
-                        h.flash_success('Dataset was updated!')
+                    try:
+                        result = self.update_dataset(
+                            context,
+                            data_dict,
+                            tree,
+                            c.pkg_dict
+                        )
+                        if result:
+                            h.flash_success('Dataset was updated!')
+                    except NotAuthorized, e:
+                        h.flash_error(e)
 
         return base.render('snippets/update-from-xml.html')
 
