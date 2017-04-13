@@ -5,11 +5,32 @@
 {% block breadcrumb_content_selected %}{% endblock %}
 
 {% block primary_content_inner %}
+  {% set organizations_available = h.organizations_available('create_dataset') %}
   <h2 class="hide-heading">{{ _('Update from ZIP') }}</h2>
   <div class="seeding-form-wrapper">
-  	<form action="" method="post" class="form-horizontal col-md-6" id="seeding-form" enctype="multipart/form-data">
-    	{{ form.input('dataset_zip', label=_('Upload ZIP file'), type="file", value="") }}
-    	<input name="submit" id="upload-zip-btn" type="submit" class="btn btn-primary pull-right" value="Import ZIP"/>
+    <form action="" method="post" class="form-horizontal col-md-6" id="seeding-form" enctype="multipart/form-data">
+        <div class="control-group">
+            {{ form.input('dataset_zip', label=_('Upload ZIP file'), type="file", value="") }}
+        </div>
+        {% if c.show_org %}
+            <div class="control-group {% if c.show_org %} error {% endif %}">
+              <div class="error">{{ _('Please, select an Organization to which you want to import the dataset.') }}</div>
+              <label for="field-organizations" class="control-label">{{ _('Organization') }}</label>
+              <div class="controls">
+                <select id="field-organizations" name="owner_org" data-module="autocomplete">
+                  {% if h.check_config_permission('create_unowned_dataset') %}
+                     <option value="" {% if not selected_org and data.id %} selected="selected" {% endif %}>{{ _('No organization') }}</option>
+                  {% endif %}
+                  {% for organization in organizations_available %}
+                    {# get out first org from users list only if there is not an existing org #}
+                    {% set selected_org = organizations_available[0].id %}
+                    <option value="{{ organization.id }}" {% if selected_org %} selected="selected" {% endif %}>{{ organization.display_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+        {% endif %}
+        <input name="submit" id="upload-zip-btn" type="submit" class="btn btn-primary pull-right" value="Import ZIP"/>
     </form>
   </div>
 {% endblock %}

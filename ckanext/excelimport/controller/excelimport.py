@@ -74,11 +74,13 @@ class ExcelImportController(base.BaseController):
             abort(401, _('Unauthorized to create package'))
         except NotFound:
             abort(404, _('Dataset not found'))
+        c.show_org = False
 
         if request.method == 'POST':
 
             try:
                 zip_file = request.params.get('dataset_zip').filename
+                owner_org = request.params.get('owner_org', None)
                 get_helpers.get('validate_file_ext')(zip_file)
             except ValidationError, e:
                 h.flash_error(e.error_dict['message'])
@@ -118,6 +120,8 @@ class ExcelImportController(base.BaseController):
                         except KeyError, e:
                             h.flash_error('Not mapped field: {0}'.format(e))
 
+                        if owner_org is not None:
+                            data_dict['owner_org'] = owner_org
                         if not data_dict.get('id', False):
                             try:
                                 self.run_create(
@@ -127,7 +131,12 @@ class ExcelImportController(base.BaseController):
                                     archive
                                 )
                             except NotAuthorized, e:
+                                c.show_org = True
                                 h.flash_error(e)
+                            except ValidationError, e:
+                                if "owner_org" in e.error_dict:
+                                    c.show_org = True
+                                h.flash_error(e.error_dict)
                         else:
                             try:
                                 package_id_or_name_exists(
@@ -147,7 +156,12 @@ class ExcelImportController(base.BaseController):
                                         archive
                                     )
                                 except NotAuthorized, e:
+                                    c.show_org = True
                                     h.flash_error(e)
+                                except ValidationError, e:
+                                    if "owner_org" in e.error_dict:
+                                        c.show_org = True
+                                    h.flash_error(e.error_dict)
 
                 else:
                     h.flash_error(
@@ -166,8 +180,8 @@ class ExcelImportController(base.BaseController):
                 self.create_resource(context, ds, res_sheet, archive)
 
             return ds
-        except ValidationError, e:
-            h.flash_error(e.error_dict)
+        except ValidationError as e:
+            raise e
 
     def create_resource(self, context, data_dict, sheet, archive):
         """Create resource with file source or url source."""
