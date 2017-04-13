@@ -44,11 +44,13 @@ class XMLUpdateController(base.BaseController):
             abort(401, _('Unauthorized to read package %s') % '')
         except NotFound:
             abort(404, _('Dataset not found'))
+        c.show_org = False
 
         if request.method == 'POST':
 
             try:
                 xml_file = request.params.get('dataset_xml').filename
+                owner_org = request.params.get('owner_org', None)
                 get_helpers.get('validate_file_xml')(xml_file)
             except ValidationError, e:
                 h.flash_error(e.error_dict['message'])
@@ -65,15 +67,18 @@ class XMLUpdateController(base.BaseController):
                 )
 
                 # XML gives us only org title, not name
-                if data_dict['owner_org']:
-                    org_title = re.sub(
-                        r'\([^)]*\)',
-                        '',
-                        data_dict['owner_org']
-                    )
-                    data_dict['owner_org'] = munge_title_to_name(
-                        org_title.strip()
-                    )
+                if owner_org is None:
+                    if data_dict['owner_org']:
+                        org_title = re.sub(
+                            r'\([^)]*\)',
+                            '',
+                            data_dict['owner_org']
+                        )
+                        data_dict['owner_org'] = munge_title_to_name(
+                            org_title.strip()
+                        )
+                else:
+                    data_dict['owner_org'] = owner_org
 
                 if not data_dict.get('id', False):
                     h.flash_error('Metadata sheet must contain package id field.')
@@ -101,7 +106,12 @@ class XMLUpdateController(base.BaseController):
                         if result:
                             h.flash_success('Dataset was updated!')
                     except NotAuthorized, e:
+                        c.show_org = True
                         h.flash_error(e)
+                    except ValidationError, e:
+                        if "owner_org" in e.error_dict:
+                            c.show_org = True
+                        h.flash_error(e.error_dict)
 
         return base.render('snippets/update-from-xml.html')
 
@@ -133,8 +143,8 @@ class XMLUpdateController(base.BaseController):
                 )
 
             return ds
-        except ValidationError, e:
-            h.flash_error(e.error_dict)
+        except ValidationError as e:
+            raise e
 
     def create_resource(self, context, data_dict, resources, formats):
         """Create resource with file source or url source."""
