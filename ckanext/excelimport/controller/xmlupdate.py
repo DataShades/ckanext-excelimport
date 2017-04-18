@@ -8,6 +8,7 @@ from ckan.logic import (ValidationError, NotAuthorized,
                         NotFound, check_access)
 import ckan.lib.navl.dictization_functions as df
 import ckan.plugins.toolkit as tk
+from ckan.lib.uploader import get_storage_path
 
 from ckanext.excelimport import (
     XML_MAP,
@@ -49,7 +50,13 @@ class XMLUpdateController(base.BaseController):
         if request.method == 'POST':
 
             try:
-                xml_file = request.params.get('dataset_xml').filename
+                tmp_file = get_helpers.get('get_tmp_file')()
+                if tmp_file and request.params['dataset_xml'] == '':
+                    filename, tmp_name = tmp_file.items()[0]
+                    xml_file = filename
+                else:
+                    xml_file = request.params.get('dataset_xml').filename
+                c.xml_file = xml_file
                 owner_org = request.params.get('owner_org', None)
                 get_helpers.get('validate_file_xml')(xml_file)
             except ValidationError, e:
@@ -57,7 +64,16 @@ class XMLUpdateController(base.BaseController):
             except AttributeError, e:
                 h.flash_error('Upload field is empty')
             else:
-                xml = request.params.get('dataset_xml').file
+                if tmp_file and request.params['dataset_xml'] == '':
+                    xml = open(
+                        '{0}/excelimport/{1}'.format(
+                            get_storage_path(),
+                            tmp_name
+                        ),
+                        'rb'
+                    )
+                else:
+                    xml = request.params.get('dataset_xml').file
                 tree = et.parse(xml).getroot()
                 data_dict = {}
                 get_helpers.get('prepare_dict_from_xml')(
@@ -105,12 +121,23 @@ class XMLUpdateController(base.BaseController):
                         )
                         if result:
                             h.flash_success('Dataset was updated!')
+                            get_helpers.get('clean_tmp_file')()
                     except NotAuthorized, e:
                         c.show_org = True
+                        get_helpers.get('save_tmp_file')(
+                            xml,
+                            xml_file,
+                            context['user']
+                        )
                         h.flash_error(e)
                     except ValidationError, e:
                         if "owner_org" in e.error_dict:
                             c.show_org = True
+                            get_helpers.get('save_tmp_file')(
+                                xml,
+                                xml_file,
+                                context['user']
+                            )
                         h.flash_error(e.error_dict)
 
         return base.render('snippets/update-from-xml.html')

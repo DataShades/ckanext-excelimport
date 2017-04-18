@@ -13,6 +13,7 @@
             {{ form.input('dataset_zip', label=_('Upload ZIP file'), type="file", value="") }}
         </div>
         {% if c.show_org %}
+            <div class="alert fade in alert-success">{{ _('Upload the file again or your recent file is waiting in session until next success import/update') }}: {{ c.zip_file }}</div>
             <div class="control-group {% if c.show_org %} error {% endif %}">
               <div class="error">{{ _('Please, select an Organization to which you want to import the dataset.') }}</div>
               <label for="field-organizations" class="control-label">{{ _('Organization') }}</label>

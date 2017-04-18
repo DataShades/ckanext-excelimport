@@ -1,9 +1,12 @@
 from ckan.logic import ValidationError
+from ckan.common import request
+from ckan.lib.uploader import get_storage_path
 from dateutil.parser import parse
 
 import shapely.geometry as geo
 import cgi
 import json
+import os
 
 from ckanext.excelimport import (
     FIELD_MAPPING, MAP_TYPES, NAMESPACES
@@ -126,10 +129,62 @@ def prepare_file(content, bytes, source):
     return fs
 
 
+def save_tmp_file(file, filename, user):
+    tmp_name = '{0}.tmp'.format(user)
+    upload_path = get_storage_path()
+    upload_dir = 'excelimport'
+    full_path = '{0}/{1}'.format(upload_path, upload_dir)
+
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+    tmp_file = open(
+        '{0}/{1}'.format(full_path, tmp_name),
+        'wb'
+    )
+    file.seek(0)
+    tmp_file.write(file.read())
+    tmp_file.close()
+
+    # add to session
+    session = request.environ['beaker.session']
+    tmp_dict = {}
+    tmp_dict[filename] = tmp_name
+    session['excelimport_tmp'] = tmp_dict
+    session.save()
+
+
+def get_tmp_file():
+    session = request.environ['beaker.session']
+
+    if 'excelimport_tmp' in session:
+        return session['excelimport_tmp']
+
+    return None
+
+
+def clean_tmp_file():
+    upload_path = get_storage_path()
+    session = request.environ['beaker.session']
+
+    if 'excelimport_tmp' in session:
+        filename, tmp_name = session['excelimport_tmp'].items()[0]
+        full_path = '{0}/excelimport/{1}'.format(
+            upload_path,
+            tmp_name
+        )
+        if os.path.exists(full_path):
+            os.remove(full_path)
+        del session['excelimport_tmp']
+        session.save()
+
+
 get_helpers = {
     'validate_file_ext': validate_file_ext,
     'validate_file_xml': validate_file_xml,
     'prepare_data_dict': prepare_data_dict,
     'prepare_dict_from_xml': prepare_dict_from_xml,
-    'prepare_file': prepare_file
+    'prepare_file': prepare_file,
+    'save_tmp_file': save_tmp_file,
+    'get_tmp_file': get_tmp_file,
+    'clean_tmp_file': clean_tmp_file
 }
