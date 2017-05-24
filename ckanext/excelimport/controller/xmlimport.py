@@ -228,15 +228,30 @@ class XMLImportController(base.BaseController):
             resource_title = resource.find(
                 XML_RESOURCE_MAP['resource_data']['name'],
                 NAMESPACES
-            ).text
+            )
             resource_desc = resource.find(
                 XML_RESOURCE_MAP['resource_data']['description'],
                 NAMESPACES
-            ).text
+            )
             resource_format = formats[index].find(
                 XML_RESOURCE_MAP['resource_formats']['formats_data']['format'],
                 NAMESPACES
-            ).text
+            )
+
+            if resource_title is not None:
+                resource_title = resource_title.text
+            else:
+                resource_title = 'Resource'
+
+            if resource_desc is not None:
+                resource_desc = resource_desc.text
+            else:
+                resource_desc = ''
+
+            if resource_format is not None:
+                resource_format = resource_format.text
+            else:
+                resource_format = None
 
             if resource_from:
                 tk.get_action('resource_create')(context, {
