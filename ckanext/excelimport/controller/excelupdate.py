@@ -6,6 +6,7 @@ import ckan.model as model
 from ckan.logic import (ValidationError, NotAuthorized,
                         NotFound, check_access)
 import ckan.plugins.toolkit as tk
+from ckan.lib.uploader import get_storage_path
 
 import zipfile
 from openpyxl import load_workbook
@@ -41,21 +42,35 @@ class ExcelUpdateController(base.BaseController):
         except NotFound:
             abort(404, _('Dataset not found'))
 
+        c.show_org = False
         c.pkg = context.get("package")
 
         if request.method == 'POST':
             try:
-                zip_file = request.params.get('dataset_zip').filename
+                tmp_file = get_helpers.get('get_tmp_file')()
+                if tmp_file and request.params['dataset_zip'] == '':
+                    filename, tmp_name = tmp_file.items()[0]
+                    zip_file = filename
+                else:
+                    zip_file = request.params.get('dataset_zip').filename
+                c.zip_file = zip_file
+                owner_org = request.params.get('owner_org', None)
                 get_helpers.get('validate_file_ext')(zip_file)
             except ValidationError, e:
                 h.flash_error(e.error_dict['message'])
             except AttributeError, e:
                 h.flash_error('Upload field is empty')
             else:
-                archive = zipfile.ZipFile(
-                    request.params.get('dataset_zip').file,
-                    'r'
-                )
+                if tmp_file and request.params['dataset_zip'] == '':
+                    zip_content = '{0}/excelimport/{1}'.format(
+                        get_storage_path(),
+                        tmp_name
+                    )
+                    archive = zipfile.ZipFile(zip_content, 'r')
+                else:
+                    zip_content = request.params.get('dataset_zip').file
+                    archive = zipfile.ZipFile(zip_content, 'r')
+
                 list_files = archive.namelist()
                 md_file = [i for i in AVAILABLE_MD_FILES if i in list_files]
 
@@ -85,6 +100,9 @@ class ExcelUpdateController(base.BaseController):
                         except KeyError, e:
                             h.flash_error('Not mapped field: {0}'.format(e))
 
+                        if owner_org is not None:
+                            data_dict['owner_org'] = owner_org
+
                         if not data_dict.get('id', False):
                             h.flash_error('Metadata sheet must contain package id field.')
                         if data_dict['id'] not in [c.pkg_dict['id'], c.pkg_dict['name']]:
@@ -111,8 +129,24 @@ class ExcelUpdateController(base.BaseController):
                                 )
                                 if result:
                                     h.flash_success('Dataset was updated!')
+                                    get_helpers.get('clean_tmp_file')()
                             except NotAuthorized, e:
+                                c.show_org = True
+                                get_helpers.get('save_tmp_file')(
+                                    zip_content,
+                                    zip_file,
+                                    context['user']
+                                )
                                 h.flash_error(e)
+                            except ValidationError, e:
+                                if "owner_org" in e.error_dict:
+                                    c.show_org = True
+                                    get_helpers.get('save_tmp_file')(
+                                        zip_content,
+                                        zip_file,
+                                        context['user']
+                                    )
+                                h.flash_error(e.error_dict)
                 else:
                     h.flash_error(
                         'ZIP must contain the next .xlsx file: {0}'.format(
@@ -132,8 +166,8 @@ class ExcelUpdateController(base.BaseController):
                 self.create_resource(context, ds, res_sheet, archive)
 
             return ds
-        except ValidationError, e:
-            h.flash_error(e.error_dict)
+        except ValidationError as e:
+            raise e
 
     def create_resource(self, context, data_dict, sheet, archive):
         """Create resource with file source or url source."""
