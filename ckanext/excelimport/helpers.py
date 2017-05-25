@@ -106,9 +106,12 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
         elif key == 'map_type':
             data_dict[key] = ''
         elif key == 'created':
-            data_dict[key] = parse(
-                tree.find(value, NAMESPACES).text
-            )
+            created_xml = tree.find(value, NAMESPACES)
+
+            if created_xml is not None:
+                data_dict[key] = parse(
+                    created_xml.text
+                )
         else:
             try:
                 data_dict[key] = tree.find(value, NAMESPACES).text
