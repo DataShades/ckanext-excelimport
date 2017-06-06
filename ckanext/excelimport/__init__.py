@@ -23,7 +23,8 @@ FIELD_MAPPING = {
     'Date Created': 'created',
     'Last updated': 'last_modified',
     'Map Service ID': 'map_service_id',
-    'Layer ID': 'layer_id',
+    'Layer List Name': 'layer_list_name',
+    'Layer Catalog Name': 'layer_catalog_name',
     'Map Type': 'map_type'
 }
 
@@ -116,7 +117,7 @@ XML_MAP = {
         'gmd:citation/gmd:CI_Citation/gmd:date[3]/'
         'gmd:CI_Date/gmd:date/gco:Date'),
     'map_service_id': '',
-    'layer_id': '',
+    'layer_list_name': '',
     'map_type': ''
 }
 
