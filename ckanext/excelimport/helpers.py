@@ -9,9 +9,8 @@ import json
 import os
 
 from ckanext.excelimport import (
-    FIELD_MAPPING, MAP_TYPES, NAMESPACES
+    FIELD_MAPPING, MAP_TYPES, NAMESPACES, XML_RESOURCE_MAP
 )
-
 
 def validate_file_ext(zip_file):
     """Validate for .zip file passed into the form."""
@@ -105,6 +104,13 @@ def prepare_dict_from_xml(tree, xml_map, data_dict):
             data_dict[key] = 'dataset'
         elif key == 'map_type':
             data_dict[key] = ''
+        elif key == 'created':
+            created_xml = tree.find(value, NAMESPACES)
+
+            if created_xml is not None:
+                data_dict[key] = parse(
+                    created_xml.text
+                )
         else:
             try:
                 data_dict[key] = tree.find(value, NAMESPACES).text
@@ -178,6 +184,42 @@ def clean_tmp_file():
         session.save()
 
 
+def xml_resource_data_validate(resource, index, formats):
+    """Get resource data prepare."""
+    resource_from = resource.find(
+        XML_RESOURCE_MAP['resource_data']['url'],
+        NAMESPACES
+    ).text
+    resource_title = resource.find(
+        XML_RESOURCE_MAP['resource_data']['name'],
+        NAMESPACES
+    )
+    resource_desc = resource.find(
+        XML_RESOURCE_MAP['resource_data']['description'],
+        NAMESPACES
+    )
+    resource_format = formats[index].find(
+        XML_RESOURCE_MAP['resource_formats']['formats_data']['format'],
+        NAMESPACES
+    )
+
+    if resource_title is not None:
+        resource_title = resource_title.text
+    else:
+        resource_title = 'Resource'
+
+    if resource_desc is not None:
+        resource_desc = resource_desc.text
+    else:
+        resource_desc = ''
+
+    if resource_format is not None:
+        resource_format = resource_format.text
+    else:
+        resource_format = None
+
+    return resource_from, resource_title, resource_desc, resource_format
+
 get_helpers = {
     'validate_file_ext': validate_file_ext,
     'validate_file_xml': validate_file_xml,
@@ -186,5 +228,6 @@ get_helpers = {
     'prepare_file': prepare_file,
     'save_tmp_file': save_tmp_file,
     'get_tmp_file': get_tmp_file,
-    'clean_tmp_file': clean_tmp_file
+    'clean_tmp_file': clean_tmp_file,
+    'xml_resource_data_validate': xml_resource_data_validate
 }

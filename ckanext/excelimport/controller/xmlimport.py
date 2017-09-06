@@ -221,23 +221,16 @@ class XMLImportController(base.BaseController):
     def create_resource(self, context, data_dict, resources, formats):
         """Create resource with file source or url source."""
         for index, resource in enumerate(resources):
-            resource_from = resource.find(
-                XML_RESOURCE_MAP['resource_data']['url'],
-                NAMESPACES
-            ).text
-            resource_title = resource.find(
-                XML_RESOURCE_MAP['resource_data']['name'],
-                NAMESPACES
-            ).text
-            resource_desc = resource.find(
-                XML_RESOURCE_MAP['resource_data']['description'],
-                NAMESPACES
-            ).text
-            resource_format = formats[index].find(
-                XML_RESOURCE_MAP['resource_formats']['formats_data']['format'],
-                NAMESPACES
-            ).text
-
+            [
+                resource_from,
+                resource_title,
+                resource_desc,
+                resource_format
+            ] = get_helpers.get('xml_resource_data_validate')(
+                resource,
+                index,
+                formats
+            )
             if resource_from:
                 tk.get_action('resource_create')(context, {
                     'package_id': data_dict['id'],
