@@ -31,7 +31,7 @@ def prepare_data_dict(data_dict, rows):
                         value = MAP_TYPES[value]
 
                 data_dict[FIELD_MAPPING[field]] = value
-        except KeyError, e:
+        except KeyError as e:
             raise e
 
 

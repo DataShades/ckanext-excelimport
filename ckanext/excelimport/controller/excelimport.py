@@ -80,9 +80,9 @@ class ExcelImportController(base.BaseController):
             try:
                 zip_file = request.params.get('dataset_zip').filename
                 get_helpers.get('validate_file_ext')(zip_file)
-            except ValidationError, e:
+            except ValidationError as e:
                 h.flash_error(e.error_dict['message'])
-            except AttributeError, e:
+            except AttributeError as e:
                 h.flash_error('Upload field is empty')
             else:
                 archive = zipfile.ZipFile(
@@ -101,21 +101,17 @@ class ExcelImportController(base.BaseController):
 
                     # Get metadata sheet
                     try:
-                        metadata_sheet = metadata_xlsx.get_sheet_by_name(
-                            METADATA_SHEET[md_file[0]]
-                        )
-                    except KeyError, e:
+                        metadata_sheet = metadata_xlsx[METADATA_SHEET[md_file[0]]
+                    except KeyError as e:
                         h.flash_error(e)
                     else:
                         #  Get resources sheet
-                        resources_sheet = metadata_xlsx.get_sheet_by_name(
-                            'Resources'
-                        )
+                        resources_sheet = metadata_xlsx['Resources']
                         data_dict = {}
                         rows = metadata_sheet.iter_rows(row_offset=1)
                         try:
                             get_helpers.get('prepare_data_dict')(data_dict, rows)
-                        except KeyError, e:
+                        except KeyError as e:
                             h.flash_error('Not mapped field: {0}'.format(e))
 
                         if not data_dict.get('id', False):
@@ -159,7 +155,7 @@ class ExcelImportController(base.BaseController):
                 self.create_resource(context, ds, res_sheet, archive)
 
             return ds
-        except ValidationError, e:
+        except ValidationError as e:
             h.flash_error(e.error_dict)
 
     def create_resource(self, context, data_dict, sheet, archive):
