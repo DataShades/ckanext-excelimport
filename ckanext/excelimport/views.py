@@ -95,7 +95,7 @@ def import_from_zip():
             if md_file:
                 metadata = archive.read(md_file[0])
                 metadata_xlsx = load_workbook(
-                    filename=io.BytesIO(metadata),
+                    filename=metadata,
                     data_only=True
                 )
 
