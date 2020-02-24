@@ -85,6 +85,7 @@ def import_from_zip():
         except AttributeError as e:
             h.flash_error('Upload field is empty')
         else:
+            import pdb; pdb.set_trace()
             archive = zipfile.ZipFile(
                 request.files.get('dataset_zip').stream,
                 'r'
@@ -232,7 +233,7 @@ def update_from_zip(id):
             h.flash_error('Upload field is empty')
         else:
             archive = zipfile.ZipFile(
-                request.files.get('dataset_zip').stream,
+                request.files.get('dataset_zip')._file,
                 'r'
             )
             list_files = archive.namelist()
