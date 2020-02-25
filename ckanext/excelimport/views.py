@@ -85,9 +85,8 @@ def import_from_zip():
         except AttributeError as e:
             h.flash_error('Upload field is empty')
         else:
-            import pdb; pdb.set_trace()
             archive = zipfile.ZipFile(
-                request.files.get('dataset_zip').stream,
+                request.files.get('dataset_zip')._file,
                 'r'
             )
             list_files = archive.namelist()
@@ -96,7 +95,7 @@ def import_from_zip():
             if md_file:
                 metadata = archive.read(md_file[0])
                 metadata_xlsx = load_workbook(
-                    filename=metadata,
+                    filename=io.BytesIO(metadata),
                     data_only=True
                 )
 
@@ -145,7 +144,7 @@ def import_from_zip():
                         AVAILABLE_MD_FILES[1]
                     )
                 )
-    data = {"user_dict": g.userobj, 'pkg_dict': c.pkg_dict}
+    data = {"user_dict": g.userobj}
     return base.render('snippets/import-from-zip.html', extra_vars=data)
 
 
