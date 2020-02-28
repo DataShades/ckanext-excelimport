@@ -139,9 +139,8 @@ def import_from_zip():
 
             else:
                 h.flash_error(
-                    'ZIP must contain 1 of 2 files: {0} or {1}'.format(
-                        AVAILABLE_MD_FILES[0],
-                        AVAILABLE_MD_FILES[1]
+                    'There are no necessary files in the zip: {}'.format(
+                        ', '.join(AVAILABLE_MD_FILES)
                     )
                 )
     data = {"user_dict": g.userobj}
@@ -288,9 +287,8 @@ def update_from_zip(id):
 
             else:
                 h.flash_error(
-                    'ZIP must contain 1 of 2 files: {0} or {1}'.format(
-                        AVAILABLE_MD_FILES[0],
-                        AVAILABLE_MD_FILES[1]
+                    'There are no necessary files in the zip: {}'.format(
+                        ', '.join(AVAILABLE_MD_FILES)
                     )
                 )
     data = {"user_dict": g.userobj, 'pkg_dict': c.pkg_dict}
