@@ -47,6 +47,8 @@ def _run_create(context, data_dict, resources_sheet, archive):
                 break
             counter += 1
 
+    data_dict['owner_org'] = data_dict['owner_org'].lower()
+
     result = _create_dataset(
         context,
         data_dict,
