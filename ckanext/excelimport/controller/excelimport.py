@@ -156,6 +156,10 @@ class ExcelImportController(base.BaseController):
             return ds
         except ValidationError as e:
             h.flash_error(e.error_dict)
+            if 'owner_org' in e.error_dict:
+                h.flash_notice('Please, create an organization: {}'.format(
+                    data_dict.get('owner_org'))
+                )
 
     def create_resource(self, context, data_dict, sheet, archive):
         """Create resource with file source or url source."""

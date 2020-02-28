@@ -159,6 +159,10 @@ def _create_dataset(context, data_dict, res_sheet, archive):
         return ds
     except ValidationError as e:
         h.flash_error(e.error_dict)
+        if 'owner_org' in e.error_dict:
+            h.flash_notice('Please, create an organization: {}'.format(
+                data_dict.get('owner_org'))
+            )
 
 
 def _create_resource(context, data_dict, sheet, archive):
