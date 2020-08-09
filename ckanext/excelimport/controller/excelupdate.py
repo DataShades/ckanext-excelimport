@@ -1,23 +1,19 @@
-"""Contain ZIP import controller."""
-import ckan.lib.base as base
-import ckan.lib.helpers as h
-from ckan.common import request, c, _
-import ckan.model as model
-from ckan.logic import (ValidationError, NotAuthorized,
-                        NotFound, check_access)
-import ckan.plugins.toolkit as tk
-
 import zipfile
-from openpyxl import load_workbook
 import io
 
-from ckanext.excelimport import (
-    AVAILABLE_MD_FILES,
-    METADATA_SHEET
-)
-from ckanext.excelimport.helpers import get_helpers
+from openpyxl import load_workbook
 
-abort = base.abort
+import ckan.lib.base as base
+import ckan.lib.helpers as h
+import ckan.model as model
+import ckan.plugins.toolkit as tk
+
+from ckan.common import request, c, _
+from ckan.logic import (ValidationError, NotAuthorized,
+                        NotFound, check_access)
+
+from ckanext.excelimport import AVAILABLE_MD_FILES, METADATA_SHEET
+from ckanext.excelimport.helpers import get_helpers
 
 
 class ExcelUpdateController(base.BaseController):
@@ -37,9 +33,9 @@ class ExcelUpdateController(base.BaseController):
             check_access('package_update', context, {'id': id})
             c.pkg_dict = tk.get_action('package_show')(context, {'id': id})
         except NotAuthorized:
-            abort(401, _('Unauthorized to read package %s') % '')
+            base.abort(401, _('Unauthorized to read package %s') % '')
         except NotFound:
-            abort(404, _('Dataset not found'))
+            base.abort(404, _('Dataset not found'))
 
         c.pkg = context.get("package")
 
@@ -47,9 +43,9 @@ class ExcelUpdateController(base.BaseController):
             try:
                 zip_file = request.params.get('dataset_zip').filename
                 get_helpers.get('validate_file_ext')(zip_file)
-            except ValidationError, e:
+            except ValidationError as e:
                 h.flash_error(e.error_dict['message'])
-            except AttributeError, e:
+            except AttributeError as e:
                 h.flash_error('Upload field is empty')
             else:
                 archive = zipfile.ZipFile(
@@ -68,21 +64,17 @@ class ExcelUpdateController(base.BaseController):
 
                     # Get metadata sheet
                     try:
-                        metadata_sheet = metadata_xlsx.get_sheet_by_name(
-                            METADATA_SHEET[md_file[0]]
-                        )
-                    except KeyError, e:
+                        metadata_sheet = metadata_xlsx[METADATA_SHEET[md_file[0]]]
+                    except KeyError as e:
                         h.flash_error(e)
                     else:
                         #  Get resources sheet
-                        resources_sheet = metadata_xlsx.get_sheet_by_name(
-                            'Resources'
-                        )
+                        resources_sheet = metadata_xlsx['Resources']
                         data_dict = {}
                         rows = metadata_sheet.iter_rows(row_offset=1)
                         try:
                             get_helpers.get('prepare_data_dict')(data_dict, rows)
-                        except KeyError, e:
+                        except KeyError as e:
                             h.flash_error('Not mapped field: {0}'.format(e))
 
                         if not data_dict.get('id', False):
@@ -113,9 +105,8 @@ class ExcelUpdateController(base.BaseController):
 
                 else:
                     h.flash_error(
-                        'ZIP must contain 1 of 2 files: {0} or {1}'.format(
-                            AVAILABLE_MD_FILES[0],
-                            AVAILABLE_MD_FILES[1]
+                        'There are no necessary files in the zip: {}'.format(
+                            ', '.join(AVAILABLE_MD_FILES)
                         )
                     )
 
@@ -131,7 +122,7 @@ class ExcelUpdateController(base.BaseController):
                 self.create_resource(context, ds, res_sheet, archive)
 
             return ds
-        except ValidationError, e:
+        except ValidationError as e:
             h.flash_error(e.error_dict)
 
     def create_resource(self, context, data_dict, sheet, archive):
